@@ -254,53 +254,51 @@ export class SeedService implements OnApplicationBootstrap {
     // Get all permissions
     const allPermissions = await this.permissionRepository.find();
 
-    // SuperAdmin gets all permissions
+    // 1. Define explicit permission lists for each role
+    // User can manually edit these arrays to configure permissions
+    const superAdminPermissions = allPermissions.map((p) => p.name); // Default: All
+
+    const adminPermissions = [
+      'users.create',
+      'users.read',
+      'users.update',
+      'users.delete',
+      'roles.read',
+      'files.create',
+      'files.read',
+      'files.update',
+      'files.delete',
+    ];
+
+    const userPermissions = [
+      'users.read',
+      'roles.read',
+      'files.read',
+      'files.create',
+    ];
+
+    // 2. Helper function to map permission names to entities
+    const mapPermissions = (permissionNames: string[]) => {
+      return allPermissions.filter((p) => permissionNames.includes(p.name));
+    };
+
+    // 3. Assign permissions
     if (superAdminRole && superAdminRole.permissions.length === 0) {
-      superAdminRole.permissions = allPermissions;
+      superAdminRole.permissions = mapPermissions(superAdminPermissions);
       await this.roleRepository.save(superAdminRole);
-      this.logger.log('Assigned all permissions to superadmin role');
+      this.logger.log('Assigned permissions to superadmin role');
     }
 
-    // Admin gets user management, file management, sample products, and pools permissions
     if (adminRole && adminRole.permissions.length === 0) {
-      const adminPermissions = allPermissions.filter(
-        (p) => p.name.startsWith('users.') && !p.name.includes('manage'),
-      );
-      adminPermissions.push(
-        ...allPermissions.filter((p) => p.name.includes('roles.read')),
-      );
-      adminPermissions.push(
-        ...allPermissions.filter(
-          (p) => p.name.startsWith('files.') && !p.name.includes('manage'),
-        ),
-      );
-
-      adminRole.permissions = adminPermissions;
+      adminRole.permissions = mapPermissions(adminPermissions);
       await this.roleRepository.save(adminRole);
-      this.logger.log(
-        'Assigned user and file management permissions to admin role',
-      );
+      this.logger.log('Assigned permissions to admin role');
     }
 
-    // Basic user gets read permissions, basic file operations, and pool management
     if (userRole && userRole.permissions.length === 0) {
-      const userPermissions = allPermissions.filter(
-        (p) =>
-          p.action === 'read' &&
-          (p.resource === 'user' ||
-            p.resource === 'role' ||
-            p.resource === 'file'),
-      );
-      // Add file create permission for basic users
-      userPermissions.push(
-        ...allPermissions.filter((p) => p.name === 'files.create'),
-      );
-
-      userRole.permissions = userPermissions;
+      userRole.permissions = mapPermissions(userPermissions);
       await this.roleRepository.save(userRole);
-      this.logger.log(
-        'Assigned basic read and file upload permissions to user role',
-      );
+      this.logger.log('Assigned permissions to user role');
     }
   }
 
