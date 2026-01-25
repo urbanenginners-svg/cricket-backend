@@ -10,18 +10,12 @@ import { UserModule } from './modules/user/user.module';
 import { RoleModule } from './modules/role/role.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { FileModule } from './modules/file/file.module';
-import { SampleProductModule } from './modules/sample-product/sample-product.module';
 import { AuthModule } from './auth/auth.module';
 import { SeedService } from './database/seed.service';
 import { User } from './modules/user/user.entity';
 import { Role } from './modules/role/role.entity';
 import { Permission } from './modules/permission/permission.entity';
 import { File } from './modules/file/file.entity';
-import { SampleProduct } from './modules/sample-product/sample-product.entity';
-import { Pool } from './modules/pool/pool.entity';
-import { PoolModule } from './modules/pool/pool.module';
-import { Donation } from './modules/donation/donation.entity';
-import { DonationModule } from './modules/donation/donation.module';
 import { SerializationInterceptor } from './common/interceptors/serialization.interceptor';
 
 /**
@@ -51,9 +45,6 @@ import { SerializationInterceptor } from './common/interceptors/serialization.in
       Role,
       Permission,
       File,
-      SampleProduct,
-      Pool,
-      Donation,
     ]),
 
     // Feature Modules
@@ -61,9 +52,6 @@ import { SerializationInterceptor } from './common/interceptors/serialization.in
     RoleModule,
     PermissionModule,
     FileModule,
-    SampleProductModule,
-    PoolModule,
-    DonationModule,
     AuthModule,
   ],
   controllers: [AppController],
@@ -76,4 +64,4 @@ import { SerializationInterceptor } from './common/interceptors/serialization.in
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

@@ -5,7 +5,6 @@ import { User } from '../modules/user/user.entity';
 import { Role } from '../modules/role/role.entity';
 import { Permission } from '../modules/permission/permission.entity';
 import { File } from '../modules/file/file.entity';
-import { Pool } from '../modules/pool/pool.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -21,9 +20,7 @@ export class SeedService implements OnApplicationBootstrap {
     private permissionRepository: Repository<Permission>,
     @InjectRepository(File)
     private fileRepository: Repository<File>,
-    @InjectRepository(Pool)
-    private poolRepository: Repository<Pool>,
-  ) {}
+  ) { }
 
   async onApplicationBootstrap() {
     await this.seedDatabase();
@@ -182,71 +179,6 @@ export class SeedService implements OnApplicationBootstrap {
         action: 'manage',
         description: 'Full file management including hard deletion',
       },
-
-      // Sample Product permissions
-      {
-        name: 'sample-products.create',
-        resource: 'sample-product',
-        action: 'create',
-        description: 'Create new sample products',
-      },
-      {
-        name: 'sample-products.read',
-        resource: 'sample-product',
-        action: 'read',
-        description: 'View sample product information',
-      },
-      {
-        name: 'sample-products.update',
-        resource: 'sample-product',
-        action: 'update',
-        description: 'Update sample product information',
-      },
-      {
-        name: 'sample-products.delete',
-        resource: 'sample-product',
-        action: 'delete',
-        description: 'Delete sample products',
-      },
-      {
-        name: 'sample-products.manage',
-        resource: 'sample-product',
-        action: 'manage',
-        description: 'Full sample product management',
-      },
-
-      // Pool permissions
-      {
-        name: 'pools.create',
-        resource: 'pool',
-        action: 'create',
-        description: 'Create new pools',
-      },
-      {
-        name: 'pools.read',
-        resource: 'pool',
-        action: 'read',
-        description: 'View pool information',
-      },
-      {
-        name: 'pools.update',
-        resource: 'pool',
-        action: 'update',
-        description: 'Update pool information',
-      },
-      {
-        name: 'pools.delete',
-        resource: 'pool',
-        action: 'delete',
-        description: 'Delete pools',
-      },
-      {
-        name: 'pools.manage',
-        resource: 'pool',
-        action: 'manage',
-        description:
-          'Full pool management including approval and hard deletion',
-      },
     ];
 
     for (const permissionData of permissions) {
@@ -342,17 +274,11 @@ export class SeedService implements OnApplicationBootstrap {
           (p) => p.name.startsWith('files.') && !p.name.includes('manage'),
         ),
       );
-      adminPermissions.push(
-        ...allPermissions.filter((p) => p.name.startsWith('sample-products.')),
-      );
-      adminPermissions.push(
-        ...allPermissions.filter((p) => p.name.startsWith('pools.')),
-      );
 
       adminRole.permissions = adminPermissions;
       await this.roleRepository.save(adminRole);
       this.logger.log(
-        'Assigned user, file, sample product, and pool management permissions to admin role',
+        'Assigned user and file management permissions to admin role',
       );
     }
 
@@ -363,25 +289,17 @@ export class SeedService implements OnApplicationBootstrap {
           p.action === 'read' &&
           (p.resource === 'user' ||
             p.resource === 'role' ||
-            p.resource === 'file' ||
-            p.resource === 'sample-product' ||
-            p.resource === 'pool'),
+            p.resource === 'file'),
       );
       // Add file create permission for basic users
       userPermissions.push(
         ...allPermissions.filter((p) => p.name === 'files.create'),
       );
-      // Add pool management permissions for basic users (they can manage their own pools)
-      userPermissions.push(
-        ...allPermissions.filter(
-          (p) => p.name.startsWith('pools.') && !p.name.includes('manage'),
-        ),
-      );
 
       userRole.permissions = userPermissions;
       await this.roleRepository.save(userRole);
       this.logger.log(
-        'Assigned basic read, file upload, and pool management permissions to user role',
+        'Assigned basic read and file upload permissions to user role',
       );
     }
   }
