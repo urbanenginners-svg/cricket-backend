@@ -10,6 +10,8 @@ import { User } from '../../modules/user/user.entity';
 import { Role } from '../../modules/role/role.entity';
 import { Permission } from '../../modules/permission/permission.entity';
 import { File } from '../../modules/file/file.entity';
+import { PlayerProfile } from '../../modules/user/player-profile.entity';
+import { CoachProfile } from '../../modules/user/coach-profile.entity';
 
 // Define the actions that can be performed
 export enum Action {
@@ -27,8 +29,11 @@ export type Subjects =
     | typeof Role
     | typeof Permission
     | typeof File
+    | typeof PlayerProfile
+    | typeof CoachProfile
   >
-  | 'all';
+  | 'all'
+  | 'user_profile';
 
 // Define the Ability type
 export type AppAbility = MongoAbility<[Action, Subjects]>;
@@ -131,6 +136,12 @@ export class AbilityFactory {
         return Permission;
       case 'file':
         return File;
+      case 'player_profile':
+        return PlayerProfile;
+      case 'coach_profile':
+        return CoachProfile;
+      case 'user_profile':
+        return 'user_profile';
       case 'all':
         return 'all';
       default:

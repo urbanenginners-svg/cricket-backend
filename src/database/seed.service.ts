@@ -179,6 +179,66 @@ export class SeedService implements OnApplicationBootstrap {
         action: 'manage',
         description: 'Full file management including hard deletion',
       },
+
+      // Player Profile permissions
+      {
+        name: 'player_profiles.create',
+        resource: 'player_profile',
+        action: 'create',
+        description: 'Create player profile',
+      },
+      {
+        name: 'player_profiles.read',
+        resource: 'player_profile',
+        action: 'read',
+        description: 'Read player profile',
+      },
+      {
+        name: 'player_profiles.update',
+        resource: 'player_profile',
+        action: 'update',
+        description: 'Update player profile',
+      },
+      {
+        name: 'player_profiles.delete',
+        resource: 'player_profile',
+        action: 'delete',
+        description: 'Delete player profile',
+      },
+
+      // Coach Profile permissions
+      {
+        name: 'coach_profiles.create',
+        resource: 'coach_profile',
+        action: 'create',
+        description: 'Create coach profile',
+      },
+      {
+        name: 'coach_profiles.read',
+        resource: 'coach_profile',
+        action: 'read',
+        description: 'Read coach profile',
+      },
+      {
+        name: 'coach_profiles.update',
+        resource: 'coach_profile',
+        action: 'update',
+        description: 'Update coach profile',
+      },
+      {
+        name: 'coach_profiles.delete',
+        resource: 'coach_profile',
+        action: 'delete',
+        description: 'Delete coach profile',
+      },
+
+      // User Profile (Self) permissions
+      {
+        name: 'user_profiles.update',
+        resource: 'user_profile',
+        action: 'update',
+        description: 'Update own user profile',
+      },
     ];
 
     for (const permissionData of permissions) {
@@ -213,6 +273,16 @@ export class SeedService implements OnApplicationBootstrap {
       {
         name: 'user',
         description: 'Basic user with limited access',
+        isActive: true,
+      },
+      {
+        name: 'player',
+        description: 'Player role',
+        isActive: true,
+      },
+      {
+        name: 'coach',
+        description: 'Coach role',
         isActive: true,
       },
     ];
@@ -251,6 +321,16 @@ export class SeedService implements OnApplicationBootstrap {
       relations: ['permissions'],
     });
 
+    const playerRole = await this.roleRepository.findOne({
+      where: { name: 'player' },
+      relations: ['permissions'],
+    });
+
+    const coachRole = await this.roleRepository.findOne({
+      where: { name: 'coach' },
+      relations: ['permissions'],
+    });
+
     // Get all permissions
     const allPermissions = await this.permissionRepository.find();
 
@@ -273,6 +353,27 @@ export class SeedService implements OnApplicationBootstrap {
     const userPermissions = [
       'users.read',
       'roles.read',
+      'files.read',
+      'files.create',
+      'user_profiles.update',
+    ];
+
+    const playerPermissions = [
+      'users.read',
+      'user_profiles.update',
+      'player_profiles.create',
+      'player_profiles.read',
+      'player_profiles.update',
+      'files.read',
+      'files.create',
+    ];
+
+    const coachPermissions = [
+      'users.read',
+      'user_profiles.update',
+      'coach_profiles.create',
+      'coach_profiles.read',
+      'coach_profiles.update',
       'files.read',
       'files.create',
     ];
@@ -298,7 +399,20 @@ export class SeedService implements OnApplicationBootstrap {
     if (userRole && userRole.permissions.length === 0) {
       userRole.permissions = mapPermissions(userPermissions);
       await this.roleRepository.save(userRole);
+      await this.roleRepository.save(userRole);
       this.logger.log('Assigned permissions to user role');
+    }
+
+    if (playerRole && playerRole.permissions.length === 0) {
+      playerRole.permissions = mapPermissions(playerPermissions);
+      await this.roleRepository.save(playerRole);
+      this.logger.log('Assigned permissions to player role');
+    }
+
+    if (coachRole && coachRole.permissions.length === 0) {
+      coachRole.permissions = mapPermissions(coachPermissions);
+      await this.roleRepository.save(coachRole);
+      this.logger.log('Assigned permissions to coach role');
     }
   }
 

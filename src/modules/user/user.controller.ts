@@ -35,6 +35,8 @@ import {
 } from '../../common/decorators/serialize-response.decorator';
 import { Action } from '../../common/casl/ability.factory';
 import { User } from './user.entity';
+import { PlayerProfile } from './player-profile.entity';
+import { CoachProfile } from './coach-profile.entity';
 
 /**
  * User Controller
@@ -93,6 +95,7 @@ export class UserController {
    * PATCH /users/profile
    */
   @Patch('profile')
+  @CheckPermissions({ action: Action.UPDATE, subject: 'user_profile' })
   @SerializeResponse('admin', 'user')
   async updateProfile(@Request() req, @Body() dto: UpdateUserProfileDto) {
     return await this.userService.updateProfile(req.user.id, dto);
@@ -103,6 +106,7 @@ export class UserController {
    * PATCH /users/profile/player
    */
   @Patch('profile/player')
+  @CheckPermissions({ action: Action.UPDATE, subject: PlayerProfile })
   @SerializeResponse('admin', 'user')
   async updatePlayerProfile(@Request() req, @Body() dto: UpdatePlayerProfileDto) {
     return await this.userService.updatePlayerProfile(req.user.id, dto);
@@ -113,6 +117,7 @@ export class UserController {
    * PATCH /users/profile/coach
    */
   @Patch('profile/coach')
+  @CheckPermissions({ action: Action.UPDATE, subject: CoachProfile })
   @SerializeResponse('admin', 'user')
   async updateCoachProfile(@Request() req, @Body() dto: UpdateCoachProfileDto) {
     return await this.userService.updateCoachProfile(req.user.id, dto);
