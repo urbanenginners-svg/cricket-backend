@@ -16,6 +16,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { MobileLoginDto, VerifyOtpDto, SocialLoginDto } from './dto/auth-actions.dto';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { User } from '../modules/user/user.entity';
 
@@ -30,7 +31,7 @@ export class AuthController {
     private authService: AuthService,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   /**
    * User login
@@ -40,6 +41,36 @@ export class AuthController {
   @LoginSwagger()
   async login(@Body() loginDto: LoginDto) {
     return await this.authService.login(loginDto);
+  }
+
+  /**
+   * Mobile Login (Send OTP)
+   * POST /auth/login-mobile
+   */
+  @Post('login-mobile')
+  @ApiTags('auth')
+  async loginMobile(@Body() mobileLoginDto: MobileLoginDto) {
+    return await this.authService.sendOtp(mobileLoginDto);
+  }
+
+  /**
+   * Verify OTP and Login
+   * POST /auth/verify-mobile
+   */
+  @Post('verify-mobile')
+  @ApiTags('auth')
+  async verifyMobile(@Body() verifyOtpDto: VerifyOtpDto) {
+    return await this.authService.verifyOtp(verifyOtpDto);
+  }
+
+  /**
+   * Social Login Stub (Google/Facebook)
+   * POST /auth/login-social
+   */
+  @Post('login-social')
+  @ApiTags('auth')
+  async loginSocial(@Body() socialLoginDto: SocialLoginDto) {
+    return await this.authService.socialLoginStub(socialLoginDto);
   }
 
   /**

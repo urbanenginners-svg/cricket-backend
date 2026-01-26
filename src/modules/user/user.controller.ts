@@ -11,6 +11,7 @@ import {
   UseGuards,
   Query,
   Put,
+  Request,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
@@ -23,6 +24,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { OnboardingStep1Dto, OnboardingStep2Dto, OnboardingPlayerDto, OnboardingCoachDto } from './dto/onboarding.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { CheckPermissions } from '../../common/decorators/check-permissions.decorator';
@@ -42,7 +44,48 @@ import { User } from './user.entity';
 @Controller('users')
 @UseGuards(AuthGuard, PermissionsGuard)
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
+
+  /**
+   * Onboarding Step 1: Basic Information
+   * POST /users/onboarding/step1
+   */
+  @Post('onboarding/step1')
+  @SerializeResponse('admin', 'user')
+  async onboardingStep1(@Request() req, @Body() dto: OnboardingStep1Dto) {
+    // Assuming user ID is in req.user.id from AuthGuard
+    return await this.userService.onboardingStep1(req.user.id, dto);
+  }
+
+  /**
+   * Onboarding Step 2: Role Selection
+   * POST /users/onboarding/step2
+   */
+  @Post('onboarding/step2')
+  @SerializeResponse('admin', 'user')
+  async onboardingStep2(@Request() req, @Body() dto: OnboardingStep2Dto) {
+    return await this.userService.onboardingStep2(req.user.id, dto);
+  }
+
+  /**
+   * Onboarding Step 3: Player Details
+   * POST /users/onboarding/step3/player
+   */
+  @Post('onboarding/step3/player')
+  @SerializeResponse('admin', 'user')
+  async onboardingStep3Player(@Request() req, @Body() dto: OnboardingPlayerDto) {
+    return await this.userService.onboardingStep3Player(req.user.id, dto);
+  }
+
+  /**
+   * Onboarding Step 3: Coach Details
+   * POST /users/onboarding/step3/coach
+   */
+  @Post('onboarding/step3/coach')
+  @SerializeResponse('admin', 'user')
+  async onboardingStep3Coach(@Request() req, @Body() dto: OnboardingCoachDto) {
+    return await this.userService.onboardingStep3Coach(req.user.id, dto);
+  }
 
   /**
    * Create a new user
