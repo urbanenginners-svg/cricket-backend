@@ -8,6 +8,7 @@ import { Role } from '../role/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { OnboardingStep1Dto, OnboardingStep2Dto, OnboardingPlayerDto, OnboardingCoachDto } from './dto/onboarding.dto';
+import { UpdateUserProfileDto, UpdatePlayerProfileDto, UpdateCoachProfileDto } from './dto/update-profile.dto';
 
 /**
  * User Service
@@ -214,5 +215,57 @@ export class UserService {
   async restore(id: string): Promise<void> {
     const user = await this.findOne(id, true);
     await this.userRepository.restore(id);
+  }
+
+  /**
+   * Update user profile (common details)
+   * @param userId - User ID
+   * @param dto - Profile update data
+   * @returns Updated user
+   */
+  async updateProfile(userId: string, dto: UpdateUserProfileDto): Promise<User> {
+    const user = await this.findOne(userId);
+
+    if (dto.name) user.name = dto.name;
+    if (dto.gender) user.gender = dto.gender;
+    if (dto.placeOfBirth) user.placeOfBirth = dto.placeOfBirth;
+    if (dto.phoneNumber) user.phoneNumber = dto.phoneNumber;
+    if (dto.dateOfBirth) user.dateOfBirth = new Date(dto.dateOfBirth);
+
+    return await this.userRepository.save(user);
+  }
+
+  /**
+   * Update player profile
+   * @param userId - User ID
+   * @param dto - Player profile update data
+   * @returns Updated player profile
+   */
+  async updatePlayerProfile(userId: string, dto: UpdatePlayerProfileDto): Promise<PlayerProfile> {
+    const profile = await this.playerProfileRepository.findOne({ where: { userId } });
+
+    if (!profile) {
+      throw new NotFoundException(`Player profile not found for user ${userId}`);
+    }
+
+    Object.assign(profile, dto);
+    return await this.playerProfileRepository.save(profile);
+  }
+
+  /**
+   * Update coach profile
+   * @param userId - User ID
+   * @param dto - Coach profile update data
+   * @returns Updated coach profile
+   */
+  async updateCoachProfile(userId: string, dto: UpdateCoachProfileDto): Promise<CoachProfile> {
+    const profile = await this.coachProfileRepository.findOne({ where: { userId } });
+
+    if (!profile) {
+      throw new NotFoundException(`Coach profile not found for user ${userId}`);
+    }
+
+    Object.assign(profile, dto);
+    return await this.coachProfileRepository.save(profile);
   }
 }

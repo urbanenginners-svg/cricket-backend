@@ -25,6 +25,7 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { OnboardingStep1Dto, OnboardingStep2Dto, OnboardingPlayerDto, OnboardingCoachDto } from './dto/onboarding.dto';
+import { UpdateUserProfileDto, UpdatePlayerProfileDto, UpdateCoachProfileDto } from './dto/update-profile.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { CheckPermissions } from '../../common/decorators/check-permissions.decorator';
@@ -85,6 +86,36 @@ export class UserController {
   @SerializeResponse('admin', 'user')
   async onboardingStep3Coach(@Request() req, @Body() dto: OnboardingCoachDto) {
     return await this.userService.onboardingStep3Coach(req.user.id, dto);
+  }
+
+  /**
+   * Update user profile (common details)
+   * PATCH /users/profile
+   */
+  @Patch('profile')
+  @SerializeResponse('admin', 'user')
+  async updateProfile(@Request() req, @Body() dto: UpdateUserProfileDto) {
+    return await this.userService.updateProfile(req.user.id, dto);
+  }
+
+  /**
+   * Update player profile
+   * PATCH /users/profile/player
+   */
+  @Patch('profile/player')
+  @SerializeResponse('admin', 'user')
+  async updatePlayerProfile(@Request() req, @Body() dto: UpdatePlayerProfileDto) {
+    return await this.userService.updatePlayerProfile(req.user.id, dto);
+  }
+
+  /**
+   * Update coach profile
+   * PATCH /users/profile/coach
+   */
+  @Patch('profile/coach')
+  @SerializeResponse('admin', 'user')
+  async updateCoachProfile(@Request() req, @Body() dto: UpdateCoachProfileDto) {
+    return await this.userService.updateCoachProfile(req.user.id, dto);
   }
 
   /**
