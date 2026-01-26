@@ -11,6 +11,7 @@ import { RoleModule } from './modules/role/role.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { FileModule } from './modules/file/file.module';
 import { AuthModule } from './auth/auth.module';
+import { AcademyModule } from './modules/academy/academy.module';
 import { SeedService } from './database/seed.service';
 import { User } from './modules/user/user.entity';
 import { Role } from './modules/role/role.entity';
@@ -53,6 +54,7 @@ import { SerializationInterceptor } from './common/interceptors/serialization.in
     PermissionModule,
     FileModule,
     AuthModule,
+    AcademyModule,
   ],
   controllers: [AppController],
   providers: [

@@ -12,6 +12,7 @@ import { Permission } from '../../modules/permission/permission.entity';
 import { File } from '../../modules/file/file.entity';
 import { PlayerProfile } from '../../modules/user/player-profile.entity';
 import { CoachProfile } from '../../modules/user/coach-profile.entity';
+import { Academy } from '../../modules/academy/academy.entity';
 
 // Define the actions that can be performed
 export enum Action {
@@ -31,6 +32,7 @@ export type Subjects =
     | typeof File
     | typeof PlayerProfile
     | typeof CoachProfile
+    | typeof Academy
   >
   | 'all'
   | 'user_profile';
@@ -142,6 +144,8 @@ export class AbilityFactory {
         return CoachProfile;
       case 'user_profile':
         return 'user_profile';
+      case 'academy':
+        return Academy;
       case 'all':
         return 'all';
       default:
