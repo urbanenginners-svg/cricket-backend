@@ -1,6 +1,7 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
 import { OnboardingCoachDto, OnboardingPlayerDto } from './onboarding.dto';
+import { Gender } from '../../../types/enums/gender.enum';
 
 export class UpdateUserProfileDto {
     @ApiProperty({ example: 'John Doe', required: false })
@@ -8,10 +9,10 @@ export class UpdateUserProfileDto {
     @IsString()
     name?: string;
 
-    @ApiProperty({ example: 'Male', required: false })
+    @ApiProperty({ enum: Gender, required: false })
     @IsOptional()
-    @IsString()
-    gender?: string;
+    @IsEnum(Gender)
+    gender?: Gender;
 
     @ApiProperty({ example: '1990-01-01', required: false })
     @IsOptional()

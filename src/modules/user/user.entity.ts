@@ -12,6 +12,7 @@ import { Exclude, Expose, Transform } from 'class-transformer';
 import { ApiProperty, ApiHideProperty } from '@nestjs/swagger';
 import { Role } from '../role/role.entity';
 import { SerializationGroups } from '../../common/decorators/serialize-response.decorator';
+import { Gender } from '../../types/enums/gender.enum';
 
 /**
  * User Entity
@@ -64,10 +65,10 @@ export class User {
   isVerified: boolean;
 
   // Basic Profile Info
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  @ApiProperty({ description: 'Gender of the user' })
+  @Column({ type: 'enum', enum: Gender, nullable: true })
+  @ApiProperty({ description: 'Gender of the user', enum: Gender })
   @Expose({ groups: [SerializationGroups.ADMIN, SerializationGroups.USER] })
-  gender: string;
+  gender: Gender;
 
   @Column({ type: 'date', nullable: true })
   @ApiProperty({ description: 'Date of birth' })

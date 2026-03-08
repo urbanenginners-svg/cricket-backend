@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsEnum, IsOptional, IsDateString, IsBoolean, IsMobilePhone } from 'class-validator';
+import { Gender } from '../../../types/enums/gender.enum';
 
 export class OnboardingStep1Dto {
     @ApiProperty({ example: '+919876543210', description: 'Phone number with country code' })
@@ -12,10 +13,10 @@ export class OnboardingStep1Dto {
     @IsString()
     name?: string;
 
-    @ApiProperty({ example: 'Male' })
-    @IsString()
+    @ApiProperty({ enum: Gender, example: Gender.Male })
+    @IsEnum(Gender)
     @IsNotEmpty()
-    gender: string;
+    gender: Gender;
 
     @ApiProperty({ example: '1990-01-01' })
     @IsDateString()
