@@ -24,7 +24,7 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { OnboardingStep1Dto, OnboardingStep2Dto, OnboardingPlayerDto, OnboardingCoachDto } from './dto/onboarding.dto';
+import { OnboardingStep1Dto, OnboardingStep2Dto, OnboardingPlayerDto, OnboardingCoachDto, VerifyOnboardingOtpDto } from './dto/onboarding.dto';
 import { UpdateUserProfileDto, UpdatePlayerProfileDto, UpdateCoachProfileDto } from './dto/update-profile.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
@@ -37,6 +37,8 @@ import { Action } from '../../common/casl/ability.factory';
 import { User } from './user.entity';
 import { PlayerProfile } from './player-profile.entity';
 import { CoachProfile } from './coach-profile.entity';
+import { Public } from '../../common/decorators/public.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 /**
  * User Controller
@@ -50,44 +52,62 @@ export class UserController {
   constructor(private readonly userService: UserService) { }
 
   /**
-   * Onboarding Step 1: Basic Information
-   * POST /users/onboarding/step1
+   * Onboarding Step 1: Phone Number + Basic Information
+   * Finds or creates a user by phone number, saves basic profile fields,
+   * and sends an OTP to the provided number for verification.
+   * POST /users/onboarding/step1  [PUBLIC — no JWT required]
    */
   @Post('onboarding/step1')
-  @SerializeResponse('admin', 'user')
-  async onboardingStep1(@Request() req, @Body() dto: OnboardingStep1Dto) {
-    // Assuming user ID is in req.user.id from AuthGuard
-    return await this.userService.onboardingStep1(req.user.id, dto);
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  async onboardingStep1(@Body() dto: OnboardingStep1Dto) {
+    return await this.userService.onboardingStep1(dto);
+  }
+
+  /**
+   * Onboarding OTP Verification
+   * Verifies the OTP sent during step 1. On success sets isVerified=true
+   * and returns a JWT access token for use in subsequent onboarding steps.
+   * POST /users/onboarding/verify-otp  [PUBLIC — no JWT required]
+   */
+  @Post('onboarding/verify-otp')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  async verifyOnboardingOtp(@Body() dto: VerifyOnboardingOtpDto) {
+    return await this.userService.verifyOnboardingOtp(dto);
   }
 
   /**
    * Onboarding Step 2: Role Selection
-   * POST /users/onboarding/step2
+   * Requires the JWT obtained from verify-otp.
+   * POST /users/onboarding/step2  [PROTECTED]
    */
   @Post('onboarding/step2')
   @SerializeResponse('admin', 'user')
-  async onboardingStep2(@Request() req, @Body() dto: OnboardingStep2Dto) {
-    return await this.userService.onboardingStep2(req.user.id, dto);
+  async onboardingStep2(@CurrentUser() user: User, @Body() dto: OnboardingStep2Dto) {
+    return await this.userService.onboardingStep2(user.id, dto);
   }
 
   /**
    * Onboarding Step 3: Player Details
-   * POST /users/onboarding/step3/player
+   * Requires the JWT obtained from verify-otp.
+   * POST /users/onboarding/step3/player  [PROTECTED]
    */
   @Post('onboarding/step3/player')
   @SerializeResponse('admin', 'user')
-  async onboardingStep3Player(@Request() req, @Body() dto: OnboardingPlayerDto) {
-    return await this.userService.onboardingStep3Player(req.user.id, dto);
+  async onboardingStep3Player(@CurrentUser() user: User, @Body() dto: OnboardingPlayerDto) {
+    return await this.userService.onboardingStep3Player(user.id, dto);
   }
 
   /**
    * Onboarding Step 3: Coach Details
-   * POST /users/onboarding/step3/coach
+   * Requires the JWT obtained from verify-otp.
+   * POST /users/onboarding/step3/coach  [PROTECTED]
    */
   @Post('onboarding/step3/coach')
   @SerializeResponse('admin', 'user')
-  async onboardingStep3Coach(@Request() req, @Body() dto: OnboardingCoachDto) {
-    return await this.userService.onboardingStep3Coach(req.user.id, dto);
+  async onboardingStep3Coach(@CurrentUser() user: User, @Body() dto: OnboardingCoachDto) {
+    return await this.userService.onboardingStep3Coach(user.id, dto);
   }
 
   /**

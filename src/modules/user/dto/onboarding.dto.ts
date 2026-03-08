@@ -1,7 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsDateString, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsOptional, IsDateString, IsBoolean, IsMobilePhone } from 'class-validator';
 
 export class OnboardingStep1Dto {
+    @ApiProperty({ example: '+919876543210', description: 'Phone number with country code' })
+    @IsString()
+    @IsNotEmpty()
+    phoneNumber: string;
+
+    @ApiProperty({ example: 'John Doe', required: false })
+    @IsOptional()
+    @IsString()
+    name?: string;
+
     @ApiProperty({ example: 'Male' })
     @IsString()
     @IsNotEmpty()
@@ -16,15 +26,18 @@ export class OnboardingStep1Dto {
     @IsString()
     @IsNotEmpty()
     placeOfBirth: string;
+}
 
-    // Since step 1 mentions fullName, we might allow updating name if it was empty from mobile login
-    @ApiProperty({ example: 'John Doe', required: false })
-    @IsOptional()
+export class VerifyOnboardingOtpDto {
+    @ApiProperty({ example: '+919876543210', description: 'Phone number used in step 1' })
     @IsString()
-    name?: string;
+    @IsNotEmpty()
+    phoneNumber: string;
 
-    // Phone number might technically be Step 1 if not provided, but it was part of auth. 
-    // We assume auth is done.
+    @ApiProperty({ example: '483920', description: '6-digit OTP sent to the phone number' })
+    @IsString()
+    @IsNotEmpty()
+    otp: string;
 }
 
 export class OnboardingStep2Dto {

@@ -1,14 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { User } from './user.entity';
 import { PlayerProfile } from './player-profile.entity';
 import { CoachProfile } from './coach-profile.entity';
 import { Role } from '../role/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { OnboardingStep1Dto, OnboardingStep2Dto, OnboardingPlayerDto, OnboardingCoachDto } from './dto/onboarding.dto';
+import { OnboardingStep1Dto, OnboardingStep2Dto, OnboardingPlayerDto, OnboardingCoachDto, VerifyOnboardingOtpDto } from './dto/onboarding.dto';
 import { UpdateUserProfileDto, UpdatePlayerProfileDto, UpdateCoachProfileDto } from './dto/update-profile.dto';
+import { JwtPayload } from '../../auth/strategies/jwt.strategy';
 
 /**
  * User Service
@@ -25,6 +27,7 @@ export class UserService {
     private readonly coachProfileRepository: Repository<CoachProfile>,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    private readonly jwtService: JwtService,
   ) { }
 
   /**
@@ -38,21 +41,96 @@ export class UserService {
   }
 
   /**
-   * Onboarding Step 1: Basic Info
+   * Onboarding Step 1: Phone number + Basic Info → generates & sends OTP
+   * Public endpoint: finds or creates a user by phone number, saves basic
+   * profile fields, then generates a 6-digit OTP for phone verification.
    */
-  async onboardingStep1(userId: string, dto: OnboardingStep1Dto): Promise<User> {
-    const user = await this.findOne(userId);
+  async onboardingStep1(dto: OnboardingStep1Dto): Promise<{ message: string }> {
+    // Find existing user by phone number or create a new one
+    let user = await this.userRepository.findOne({
+      where: { phoneNumber: dto.phoneNumber },
+    });
 
-    // Convert string date to Date object if needed, or TypeORM handles it
-    // Using Object.assign or specific fields
+    if (!user) {
+      user = this.userRepository.create({
+        phoneNumber: dto.phoneNumber,
+        authProvider: 'mobile',
+        isActive: true,
+      });
+    }
+
+    // Update basic profile fields
+    if (dto.name) user.name = dto.name;
     user.gender = dto.gender;
     user.dateOfBirth = new Date(dto.dateOfBirth);
     user.placeOfBirth = dto.placeOfBirth;
-    if (dto.name) {
-      user.name = dto.name;
+
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiresAt = new Date();
+    otpExpiresAt.setMinutes(otpExpiresAt.getMinutes() + 10); // 10-minute expiry
+
+    user.otp = otp;
+    user.otpExpiresAt = otpExpiresAt;
+
+    await this.userRepository.save(user);
+
+    // TODO: Integrate SMS service here to send OTP to dto.phoneNumber
+    // Example: await this.smsService.send(dto.phoneNumber, `Your OTP is ${otp}`);
+    // For now, log OTP in development mode only
+    console.log(`[DEV ONLY] OTP for ${dto.phoneNumber}: ${otp}`);
+
+    return { message: 'OTP sent successfully. Please verify your phone number.' };
+  }
+
+  /**
+   * Verify OTP sent during onboarding step 1.
+   * On success: marks the user as verified and returns a JWT access token.
+   */
+  async verifyOnboardingOtp(dto: VerifyOnboardingOtpDto) {
+    // Load user together with the normally-excluded OTP fields
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.otp')
+      .addSelect('user.otpExpiresAt')
+      .leftJoinAndSelect('user.roles', 'roles')
+      .leftJoinAndSelect('roles.permissions', 'permissions')
+      .where('user.phoneNumber = :phoneNumber', { phoneNumber: dto.phoneNumber })
+      .getOne();
+
+    if (!user) {
+      throw new UnauthorizedException('No account found for this phone number');
     }
 
-    return await this.userRepository.save(user);
+    if (!user.otp || user.otp !== dto.otp) {
+      throw new UnauthorizedException('Invalid OTP');
+    }
+
+    if (!user.otpExpiresAt || user.otpExpiresAt < new Date()) {
+      throw new UnauthorizedException('OTP has expired. Please request a new one.');
+    }
+
+    // Mark phone as verified and clear OTP fields
+    await this.userRepository.update(user.id, {
+      isVerified: true,
+      otp: null,
+      otpExpiresAt: null,
+    });
+
+    // Generate JWT for the now-verified user
+    const payload: JwtPayload = { sub: user.id, email: user.email };
+    const accessToken = this.jwtService.sign(payload);
+
+    // Strip sensitive fields before returning user info
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, otp, otpExpiresAt, ...userInfo } = user as any;
+
+    return {
+      access_token: accessToken,
+      token_type: 'Bearer',
+      expires_in: 3600,
+      user: { ...userInfo, isVerified: true },
+    };
   }
 
   /**

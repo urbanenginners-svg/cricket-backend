@@ -58,6 +58,11 @@ export class User {
   @Expose({ groups: [SerializationGroups.ADMIN, SerializationGroups.USER] })
   isOnboardingCompleted: boolean;
 
+  @Column({ type: 'boolean', default: false })
+  @ApiProperty({ description: 'Whether the user phone number has been verified via OTP' })
+  @Expose({ groups: [SerializationGroups.ADMIN, SerializationGroups.USER] })
+  isVerified: boolean;
+
   // Basic Profile Info
   @Column({ type: 'varchar', length: 20, nullable: true })
   @ApiProperty({ description: 'Gender of the user' })
