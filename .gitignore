@@ -53,3 +53,5 @@ tmp/
 out/
 .next/
 .nuxt/
+
+src/database/migrations/
