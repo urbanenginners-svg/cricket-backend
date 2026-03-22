@@ -38,11 +38,16 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   // CORS configuration - enable for frontend access
+  // app.enableCors({
+  //   origin:
+  //     configService.get('NODE_ENV') === 'production'
+  //       ? ['https://yourdomain.com'] // Replace with your production domain
+  //       : ['*'], // Common frontend dev ports
+  //   credentials: true,
+  // });
+
   app.enableCors({
-    origin:
-      configService.get('NODE_ENV') === 'production'
-        ? ['https://yourdomain.com'] // Replace with your production domain
-        : ['http://localhost:3000', 'http://localhost:5173'], // Common frontend dev ports
+    origin: true, // reflect request origin dynamically
     credentials: true,
   });
 
