@@ -51,6 +51,10 @@ export class UserService {
       where: { phoneNumber: dto.phoneNumber },
     });
 
+    if(user && user.isVerified) {
+      throw new UnauthorizedException('Phone number already verified. Please log in instead.');
+    }
+
     if (!user) {
       user = this.userRepository.create({
         phoneNumber: dto.phoneNumber,
